@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth import get_user_model
+
 
 class CustomUser(AbstractUser):
     TIPO_USUARIO_CHOICES = [
@@ -25,7 +27,10 @@ class PedidoCliente(models.Model):
     
     # relaciones, no se permite que se elimine un usuario si tiene pedidos asociados
     # hay que cambiarlo para que no se pueda eliminar un usuario si tiene pedidos activos
-    usuario_fk = models.ForeignKey("CustomUser", on_delete=models.CASCADE, verbose_name="Usuario")
+    usuario_fk = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="Usuario")
+    
+    def get_username(self):
+        return self.usuario_fk.username
     
     class Meta:
         db_table = "pedidos"
@@ -34,9 +39,7 @@ class PedidoCliente(models.Model):
     
     def __str__(self):
         return (
-            f"id: {self.id} | "
-            f"fecha de recepcion: {self.fecha_recepcion} | "
-            f"descripcion: {self.descripcion}"
+            f"id: {self.id} | descripcion:  {self.descripcion} | fecha de recepcion: {self.fecha_recepcion} | precio: {self.precio} | estado de pedido: {self.estado_pedido} | estado de pago: {self.estado_pago} | usuario: {self.get_username()}"
         )
 
 class SubscripcionCliente(models.Model):
@@ -45,8 +48,10 @@ class SubscripcionCliente(models.Model):
     fecha_fin = models.DateField(verbose_name="Fecha de Fin")
     precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
     
-    usuario_fk = models.ForeignKey("CustomUser", on_delete=models.CASCADE, verbose_name="Usuario")
-
+    usuario_fk = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="Usuario")
+    
+    def get_username(self):
+        return self.usuario_fk.username
     
     class Meta:
         db_table = "subscripciones"
@@ -55,6 +60,6 @@ class SubscripcionCliente(models.Model):
     
     def __str__(self):
         return (
-            f"tipo: {self.tipo} | precio: {self.precio} | fecha de inicio: {self.fecha_inicio} | fecha de fin: {self.fecha_fin}"
+            f"tipo: {self.tipo} | precio: {self.precio} | fecha de inicio: {self.fecha_inicio} | fecha de fin: {self.fecha_fin} | usuario: {self.get_username()} " 
         )
 

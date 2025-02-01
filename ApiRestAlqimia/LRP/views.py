@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import UserSerializer, OrderSerializer
-from .models import CustomUser, PedidoCliente
+from .serializers import OrderSerializer
+from .models import PedidoCliente
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -13,53 +13,9 @@ from rest_framework.authentication import TokenAuthentication
 
 
 
-@api_view(['POST'])
-def login(request):
-    print(request.data)
-    user = get_object_or_404(CustomUser, username=request.data['username'])
-    if not user.check_password(request.data['password']):
-        return Response({"error": "invlid password"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    token, created = Token.objects.get_or_create(user=user)
-    
-    serilizer = UserSerializer(instance=user)
+#vistas pedidos
 
-    return Response({"token": token.key, "user": serilizer.data}, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-def register(request):
-    serilizer = UserSerializer(data=request.data)
-    
-    if serilizer.is_valid():
-        serilizer.save()
-        
-        user = CustomUser.objects.get(username=serilizer.data['username'])
-        user.first_name = request.data.get('first_name', '')
-        user.last_name = request.data.get('last_name', '')
-        user.telefono = request.data.get('telefono', '')
-        
-        user.set_password(serilizer.data['password'])
-        
-        user.save()
-        
-        token = Token.objects.create(user=user)
-        
-        return Response({"token": token.key, "user": serilizer.data}, status=status.HTTP_201_CREATED)
-    
-    return Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def perfil(request):
-    print(request.user)
-    serializer = UserSerializer(instance=request.user)
-    
-    #return Response("estas logeado {}".format(request.user.username), status=status.HTTP_200_OK)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+#obtiene todos los pedidos
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -73,6 +29,7 @@ def obtener_pedidos(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# crea un pedido
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -160,4 +117,30 @@ def Pedidos_usuario(request):
     # Serializa los pedidos y retorna la respuesta
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def obtener_usuarios(request):
+    if not request.user.tipo_de_usuario == "administrador":
+        return Response({"error": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+    
+    usuarios = CustomUser.objects.all()
+    serializer = UserSerializer(usuarios, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def crear_usuario(request):
+    if not request.user.tipo_de_usuario == "administrador":
+        return Response({"error": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -2,10 +2,7 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    # Autenticación y perfil
-    re_path("login", views.login),  # POST: Iniciar sesión
-    re_path("register", views.register),  # POST: Registrar un nuevo usuario
-    re_path("perfil", views.perfil),  # POST: Obtener perfil del usuario autenticado
+    
 
     # Pedidos
     re_path("pedidos", views.obtener_pedidos),  # GET: Obtener todos los pedidos (solo administrador)

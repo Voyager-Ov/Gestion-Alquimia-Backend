@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # apps propias
     "LRP.apps.LrpConfig",
-
+    "Usuarios.apps.UsuariosConfig",
+    "Pedidos.apps.PedidosConfig",
+    "Suscripciones.apps.SuscripcionesConfig",
     
     # django rest framework
     "rest_framework",
@@ -145,4 +147,4 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",  # Dirección de tu frontend Angular
 ]
 
-AUTH_USER_MODEL = 'LRP.CustomUser'
+AUTH_USER_MODEL = 'Usuarios.CustomUser'

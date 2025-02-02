@@ -6,16 +6,12 @@ from .models import CustomUser
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-
-
 # Create your views here.
 
 # vistas de ususario, 
-
 #LOGIN
 @api_view(['POST'])
 def login(request):
@@ -68,7 +64,7 @@ def perfil(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def listar_usuarios_clientes(request):
-    if not request.user.is_staff:
+    if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
     clientes = CustomUser.objects.filter(tipo_de_usuario='cliente')
@@ -82,7 +78,7 @@ def listar_usuarios_clientes(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def filtrar_usuarios(request):
-    if not request.user.is_staff:
+    if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
     filtro = request.data.get('filtro', {})
@@ -95,7 +91,7 @@ def filtrar_usuarios(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def eliminar_usuario(request):
-    if not request.user.is_staff:
+    if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
     filtro = request.data.get('filtro', {})
@@ -104,3 +100,23 @@ def eliminar_usuario(request):
     usuario.delete()
     
     return Response({"message": "Usuario eliminado correctamente"}, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def actualizar_usuario(request):
+    if request.user.tipo_de_usuario == 'cliente':
+        user = request.user
+    elif request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
+        user = get_object_or_404(CustomUser, username=request.data.get('username'))
+    else:
+        return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = CustomUserSerializers(user, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

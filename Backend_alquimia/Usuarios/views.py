@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CustomUserSerializers
+from .serializers import CustomUserSerializers, PerflSerializers
 from .models import CustomUser
 from rest_framework.authtoken.models import Token
 from rest_framework import status
@@ -10,6 +10,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 # Create your views here.
+#hacer despues tosdas las vistas separadas para los administradores y los empleados
 
 # vistas de ususario, 
 #LOGIN
@@ -49,12 +50,12 @@ def register(request):
     return Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #visualizar el perfil
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def perfil(request):
     print(request.user)
-    serializer = CustomUserSerializers(instance=request.user)
+    serializer = PerflSerializers(instance=request.user)
     
     #return Response("estas logeado {}".format(request.user.username), status=status.HTTP_200_OK)
     return Response(serializer.data, status=status.HTTP_200_OK)

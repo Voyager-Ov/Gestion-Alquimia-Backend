@@ -13,7 +13,7 @@ class CustomUser(AbstractUser):
     ]
     tipo_de_usuario = models.CharField(max_length=20, choices=TIPO_USUARIO_CHOICES,
                                        default='cliente', verbose_name="Tipo de Usuario")
-    telefono = models.CharField(max_length=15, verbose_name="Teléfono")
+    telefono = models.CharField(max_length=15, verbose_name="Teléfono", blank=True)
     direccion = models.CharField(max_length=255, verbose_name="Dirección")
     
     def __str__(self):

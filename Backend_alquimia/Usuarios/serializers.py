@@ -15,6 +15,13 @@ class CustomUserSerializers(serializers.ModelSerializer):
             "telefono",
             "direccion",
         ]
+
+class PerflSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+        
+       
         
        
         

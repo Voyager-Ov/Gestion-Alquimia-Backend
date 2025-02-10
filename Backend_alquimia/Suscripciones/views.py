@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SuscripcionSerializers
 from .models import Suscripcion
+from Usuarios.models import CustomUser
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -10,6 +11,44 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 # Create your views here.
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def crear_suscripcion(request):
+    # Solo permiten crear suscripciones los administradores o empleados.
+    if request.user.tipo_de_usuario not in ['administrador', 'empleado']:
+        return Response(
+            {"error": "Solo los administradores o empleados pueden crear suscripciones."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Se espera que en el body se envíe el username del usuario al que se asignará la suscripción
+    username = request.data.get('username')
+
+    if not username:
+        return Response(
+            {"message": "Debe proporcionar un username para asignar la suscripción."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    usuario_obj = get_object_or_404(CustomUser, username=username)
+    
+    
+    # Crear la suscripción usando los datos enviados en el request.
+    # Se recomienda eliminar el campo 'username' del request data antes de pasar los datos al serializer,
+    # en caso de que no forme parte del modelo.
+    datos = request.data.copy()
+    datos.pop('username', None)  # Eliminamos el campo username si existe, ya que no es parte del modelo
+
+    serializer = SuscripcionSerializers(data=datos)
+    if serializer.is_valid():
+        serializer.save(usuario=usuario_obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -19,6 +58,15 @@ def listar_suscripciones(request):
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
     suscripciones = Suscripcion.objects.all()
+    serializer = SuscripcionSerializers(suscripciones, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def listar_mis_suscripciones(request):
+    suscripciones = Suscripcion.objects.filter(usuario=request.user)
     serializer = SuscripcionSerializers(suscripciones, many=True)
     
     return Response(serializer.data, status=status.HTTP_200_OK)

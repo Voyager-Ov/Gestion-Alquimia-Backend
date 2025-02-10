@@ -5,7 +5,7 @@ class Pedido(models.Model):
     ESTADO_PEDIDO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('en_proceso', 'En Proceso'),
-        ('completado', 'Completado'),
+        ('listo', 'Listo'),
         ('cancelado', 'Cancelado'),
     ]
     ESTADO_PAGO_CHOICES = [

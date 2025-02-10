@@ -5,7 +5,7 @@ from Usuarios.models import CustomUser
 # Create your models here.
 class Suscripcion(models.Model):
     TIPO_SUSCRIPCION_CHOICES = [
-        ('familiar', 'Faminilar'),
+        ('familiar', 'Familar'),
         ('individual', 'Individual'),
         ('pareja', 'Pareja'),
         ('alquimia', 'Alquimia'),

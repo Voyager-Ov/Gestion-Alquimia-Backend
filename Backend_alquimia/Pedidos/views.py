@@ -19,16 +19,8 @@ def crear_pedido(request):
             {"error": "Solo personal autorizado puede crear pedidos"},
             status=status.HTTP_403_FORBIDDEN
         )
-    
     # Obtener username del cliente asociado al pedido
-    username = request.data.get('username')
-    if not username:
-        return Response(
-            {"error": "Debe proporcionar un username de cliente"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    cliente = get_object_or_404(CustomUser, username=username)
+    cliente = get_object_or_404(CustomUser, username=request.data.get("username"))
     
     # Crear pedido asociado al cliente
     serializer = PedidoSerializers(data=request.data)
@@ -95,11 +87,9 @@ def eliminar_pedido(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def actualizar_pedido(request):
-    if request.user.tipo_de_usuario not in ['administrador', 'empleado']:
-        return Response(
-            {"error": "No tienes permisos para actualizar pedidos"},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
+                return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
+
     
     filtro = request.data.get('filtro', {})
     datos_actualizados = request.data.get('datos_actualizados', {})

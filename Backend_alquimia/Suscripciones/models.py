@@ -10,12 +10,17 @@ class Suscripcion(models.Model):
         ('pareja', 'Pareja'),
         ('alquimia', 'Alquimia'),
     ]
+    ESTADO_SUSCRIPCION_CHOICES = [
+        ('activa', 'Activa'),
+        ('desactiva', 'Desactiva'),
+    ]
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='suscripcion')
 
     tipo_suscripcion = models.CharField(max_length=20, choices=TIPO_SUSCRIPCION_CHOICES, verbose_name="Tipo de Suscripcion")
     fecha_inicio = models.DateField(auto_now_add=True)
     fecha_fin = models.DateField(verbose_name="Fecha de Fin", null=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
+    estado = models.CharField(max_length=20, choices=ESTADO_SUSCRIPCION_CHOICES, verbose_name="Estado")
 
     
     

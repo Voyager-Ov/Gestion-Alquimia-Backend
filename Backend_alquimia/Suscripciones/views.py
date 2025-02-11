@@ -48,8 +48,6 @@ def crear_suscripcion(request):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -70,7 +68,6 @@ def listar_mis_suscripciones(request):
     serializer = SuscripcionSerializers(suscripciones, many=True)
     
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 #usar esta tambein para borar los usuarios, podes hacer que liste los usuarios con los filtros y cuando quieras borrar definitivo un usuario, mandarle la  funcion de abajo
 @api_view(['POST'])
@@ -93,29 +90,37 @@ def eliminar_suscripcion(request):
     if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
-    filtro = request.data.get('filtro', {})
-    suscripcion = get_object_or_404(Suscripcion, **filtro)
-    
-    suscripcion.delete()
-    
-    return Response({"message": "suscripcion eliminado correctamente"}, status=status.HTTP_200_OK)
+    id_suscripcion = request.data.get("id")
+    if not id_suscripcion:
+        return Response({"error": "Falta el ID de la suscripción"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    suscripcion = get_object_or_404(Suscripcion, id=id_suscripcion)
+    suscripcion.delete()
+    return Response({"message": "Suscripción eliminada correctamente"}, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def actualizar_suscripcion(request):
+    print(request.data)
     if not request.user.tipo_de_usuario == 'administrador' or request.user.tipo_de_usuario == 'empleado':
         return Response({"error": "No tienes permisos para realizar esta acción"}, status=status.HTTP_403_FORBIDDEN)
     
-    filtro = request.data.get('filtro', {})
-    datos_actualizados = request.data.get('datos_actualizados', {})
-    
-    suscripcion = get_object_or_404(Suscripcion, **filtro)
-    
-    serializer = SuscripcionSerializers(suscripcion, data=datos_actualizados, partial=True)
+    # Obtener el ID de la suscripción desde los datos de la solicitud
+    id_suscripcion = request.data.get('id')
+    if not id_suscripcion:
+        return Response(
+            {"error": "Debe proporcionar un ID de suscripción"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Obtener la suscripción por su ID
+    suscripcion = get_object_or_404(Suscripcion, id=id_suscripcion)
+
+    # Actualizar la suscripción con los datos proporcionados
+    serializer = SuscripcionSerializers(suscripcion, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_409_CONFLICT)

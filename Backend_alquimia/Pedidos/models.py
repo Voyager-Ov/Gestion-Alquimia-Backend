@@ -15,7 +15,7 @@ class Pedido(models.Model):
     ]
     
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='pedidos')
-    fecha_pedido = models.DateTimeField(auto_now_add=True)
+    fecha_pedido = models.DateField(verbose_name="Fecha de Recepcion")
     tipo_servicio = models.TextField(max_length=1000, verbose_name="Tipo de Servicio")
     descripcion = models.TextField(max_length=1000, verbose_name="Descripción")
    
